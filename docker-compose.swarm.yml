@@ -6,10 +6,15 @@ services:
       placement:
         constraints:
           - node.role == worker
+        max_replicas_per_node: 1
       restart_policy:
         condition: on-failure
         delay: 5s
         max_attempts: 3
+      update_config:
+        parallelism: 1
+        delay: 10s
+        order: start-first
     environment:
       - REDIS_MASTER_SERVICE=redis-sentinel
       - REDIS_MASTER_PORT=6379
@@ -17,20 +22,31 @@ services:
     networks:
       - redis-network
     configs:
-      - source: redis_config
-        target: /usr/local/etc/redis/redis.conf
+      - source: redis_master_config
+        target: /usr/local/etc/redis/redis-master.conf
+      - source: redis_slave_config
+        target: /usr/local/etc/redis/redis-slave.conf
       - source: sentinel_config
         target: /usr/local/etc/redis/sentinel.conf
       - source: startup_script
         target: /startup.sh
         mode: 0755
-    command: /startup.sh
+    command: /startup.sh swarm
     healthcheck:
-      test: ["CMD", "redis-cli", "-p", "6379", "ping"]
+      test: ["CMD-SHELL", "redis-cli -p 6379 ping && redis-cli -p 26379 ping"]
       interval: 10s
       timeout: 5s
       retries: 3
       start_period: 30s
+    ports:
+      - target: 6379
+        published: 6379
+        protocol: tcp
+        mode: host
+      - target: 26379
+        published: 26379
+        protocol: tcp
+        mode: host
 
 networks:
   redis-network:
@@ -38,8 +54,10 @@ networks:
     attachable: true
 
 configs:
-  redis_config:
-    file: ./shared/redis.conf
+  redis_master_config:
+    file: ./shared/redis-master.conf
+  redis_slave_config:
+    file: ./shared/redis-slave.conf
   sentinel_config:
     file: ./shared/sentinel.conf
   startup_script:
