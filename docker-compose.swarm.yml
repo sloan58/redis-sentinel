@@ -39,8 +39,8 @@ networks:
 
 configs:
   redis_config:
-    file: ./docker/shared/redis.conf
+    file: ./shared/redis.conf
   sentinel_config:
-    file: ./docker/shared/sentinel.conf
+    file: ./shared/sentinel.conf
   startup_script:
-    file: ./docker/startup-swarm.sh
+    file: ./startup-swarm.sh
