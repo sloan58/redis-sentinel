@@ -1,0 +1,46 @@
+services:
+  redis-sentinel:
+    image: redis:7-alpine
+    deploy:
+      replicas: 3
+      placement:
+        constraints:
+          - node.role == worker
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+    environment:
+      - REDIS_MASTER_SERVICE=redis-sentinel
+      - REDIS_MASTER_PORT=6379
+      - SENTINEL_PORT=26379
+    networks:
+      - redis-network
+    configs:
+      - source: redis_config
+        target: /usr/local/etc/redis/redis.conf
+      - source: sentinel_config
+        target: /usr/local/etc/redis/sentinel.conf
+      - source: startup_script
+        target: /startup.sh
+        mode: 0755
+    command: /startup.sh
+    healthcheck:
+      test: ["CMD", "redis-cli", "-p", "6379", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+networks:
+  redis-network:
+    driver: overlay
+    attachable: true
+
+configs:
+  redis_config:
+    file: ./docker/shared/redis.conf
+  sentinel_config:
+    file: ./docker/shared/sentinel.conf
+  startup_script:
+    file: ./docker/startup-swarm.sh

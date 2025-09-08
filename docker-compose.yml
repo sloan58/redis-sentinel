@@ -1,0 +1,49 @@
+services:
+    redis-sentinel-1:
+        image: redis:7-alpine
+        container_name: redis-sentinel-1
+        ports:
+            - "6379:6379"
+            - "26379:26379"
+        volumes:
+            - ./docker/shared/redis.conf:/usr/local/etc/redis/redis.conf
+            - ./docker/shared/sentinel.conf:/usr/local/etc/redis/sentinel.conf
+            - ./docker/startup.sh:/startup.sh
+        command: /startup.sh
+        networks:
+            - redis-network
+        restart: unless-stopped
+
+    redis-sentinel-2:
+        image: redis:7-alpine
+        container_name: redis-sentinel-2
+        ports:
+            - "6380:6379"
+            - "26380:26379"
+        volumes:
+            - ./docker/shared/redis.conf:/usr/local/etc/redis/redis.conf
+            - ./docker/shared/sentinel.conf:/usr/local/etc/redis/sentinel.conf
+            - ./docker/startup.sh:/startup.sh
+        command: /startup.sh
+        networks:
+            - redis-network
+        restart: unless-stopped
+
+    redis-sentinel-3:
+        image: redis:7-alpine
+        container_name: redis-sentinel-3
+        ports:
+            - "6381:6379"
+            - "26381:26379"
+        volumes:
+            - ./docker/shared/redis.conf:/usr/local/etc/redis/redis.conf
+            - ./docker/shared/sentinel.conf:/usr/local/etc/redis/sentinel.conf
+            - ./docker/startup.sh:/startup.sh
+        command: /startup.sh
+        networks:
+            - redis-network
+        restart: unless-stopped
+
+networks:
+    redis-network:
+        driver: bridge
