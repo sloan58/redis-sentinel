@@ -29,9 +29,9 @@ services:
       - source: sentinel_config
         target: /usr/local/etc/redis/sentinel.conf
       - source: startup_script
-        target: /startup.sh
+        target: /startup-swarm.sh
         mode: 0755
-    command: /startup.sh swarm
+    command: /startup-swarm.sh swarm
     healthcheck:
       test: ["CMD-SHELL", "redis-cli -p 6379 ping && redis-cli -p 26379 ping"]
       interval: 10s
